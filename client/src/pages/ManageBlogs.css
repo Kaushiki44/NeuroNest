@@ -1,0 +1,115 @@
+.manage-blogs-page {
+  padding: 24px 0;
+}
+
+.page-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 24px;
+}
+
+.page-title {
+  font-family: var(--font-heading);
+  font-size: 2rem;
+  font-weight: 700;
+  color: var(--text-primary);
+}
+
+.table-container {
+  overflow-x: auto;
+  border-radius: var(--radius-lg);
+  padding: 0;
+}
+
+.blogs-table {
+  width: 100%;
+  border-collapse: collapse;
+  text-align: left;
+}
+
+.blogs-table th,
+.blogs-table td {
+  padding: 16px 24px;
+  border-bottom: 1px solid var(--border-color);
+}
+
+.blogs-table th {
+  background: rgba(15, 23, 42, 0.03);
+  color: var(--text-secondary);
+  font-weight: 600;
+  font-size: 0.85rem;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+}
+
+:root[data-theme="dark"] .blogs-table th {
+  background: rgba(255, 255, 255, 0.02);
+}
+
+.blogs-table tbody tr:last-child td {
+  border-bottom: none;
+}
+
+.blogs-table tbody tr:hover {
+  background: var(--bg-card-hover);
+}
+
+.col-title a {
+  color: var(--text-primary);
+  font-weight: 600;
+  transition: color var(--transition-fast);
+}
+
+.col-title a:hover {
+  color: var(--accent-primary);
+}
+
+.col-category {
+  color: var(--text-secondary);
+  text-transform: capitalize;
+}
+
+.col-actions {
+  display: flex;
+  gap: 8px;
+}
+
+.action-btn {
+  width: 32px;
+  height: 32px;
+  border-radius: var(--radius-md);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 1.1rem;
+  background: transparent;
+  border: 1px solid transparent;
+  transition: all var(--transition-fast);
+}
+
+.edit-btn {
+  color: var(--text-secondary);
+}
+.edit-btn:hover {
+  color: var(--text-primary);
+  background: rgba(255, 255, 255, 0.1);
+}
+:root[data-theme="light"] .edit-btn:hover {
+  background: rgba(0, 0, 0, 0.05);
+}
+
+.delete-btn {
+  color: var(--text-secondary);
+}
+.delete-btn:hover {
+  color: var(--accent-danger);
+  background: rgba(239, 68, 68, 0.1);
+}
+
+.loading-state,
+.empty-state {
+  padding: 48px;
+  text-align: center;
+  color: var(--text-secondary);
+}

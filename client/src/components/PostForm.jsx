@@ -25,6 +25,7 @@ const formats = [
 const PostForm = ({ initialData = {}, onSubmit, loading = false, submitLabel = 'Publish' }) => {
   const [title, setTitle] = useState(initialData.title || '');
   const [content, setContent] = useState(initialData.content || '');
+  const [thumbnail, setThumbnail] = useState(initialData.thumbnail || '');
   const [tags, setTags] = useState(initialData.tags?.join(', ') || '');
   const [status, setStatus] = useState(initialData.status || 'draft');
 
@@ -38,6 +39,7 @@ const PostForm = ({ initialData = {}, onSubmit, loading = false, submitLabel = '
     onSubmit({
       title,
       content,
+      thumbnail,
       tags: tagArray,
       status,
     });
@@ -55,6 +57,18 @@ const PostForm = ({ initialData = {}, onSubmit, loading = false, submitLabel = '
           value={title}
           onChange={(e) => setTitle(e.target.value)}
           required
+        />
+      </div>
+
+      <div className="form-group">
+        <label className="form-label" htmlFor="post-thumbnail">Thumbnail Image URL (Optional)</label>
+        <input
+          id="post-thumbnail"
+          type="url"
+          className="form-input"
+          placeholder="https://example.com/image.jpg"
+          value={thumbnail}
+          onChange={(e) => setThumbnail(e.target.value)}
         />
       </div>
 

@@ -1,6 +1,7 @@
 const express = require('express');
 const { body, validationResult } = require('express-validator');
 const Post = require('../models/Post');
+const Comment = require('../models/Comment');
 const { protect } = require('../middleware/auth');
 const { calculateQualityScore } = require('../services/qualityScore');
 
@@ -91,13 +92,14 @@ router.post(
         });
       }
 
-      const { title, content, tags, status, excerpt } = req.body;
+      const { title, content, tags, status, excerpt, thumbnail } = req.body;
 
       const { score: qualityScore, feedback: qualityFeedback } = calculateQualityScore(content);
 
       const post = await Post.create({
         title,
         content,
+        thumbnail,
         excerpt: excerpt || undefined,
         tags: tags || [],
         status: status || 'draft',
@@ -135,13 +137,26 @@ router.put('/:id', protect, async (req, res) => {
       });
     }
 
-    const { title, content, tags, status, excerpt } = req.body;
+    const { title, content, tags, status, excerpt, thumbnail } = req.body;
 
     post.title = title || post.title;
     post.content = content || post.content;
+    post.thumbnail = thumbnail !== undefined ? thumbnail : post.thumbnail;
     post.tags = tags !== undefined ? tags : post.tags;
     post.status = status || post.status;
-    if (excerpt !== undefined) post.excerpt = excerpt;
+    
+    if (excerpt !== undefined) {
+      post.excerpt = excerpt;
+    } else if (content) {
+      // Force excerpt regeneration to fix any old &nbsp; issues
+      const plainText = content
+        .replace(/<[^>]*>/g, ' ')
+        .replace(/&nbsp;/gi, ' ')
+        .replace(/\u00A0/g, ' ')
+        .replace(/\s+/g, ' ')
+        .trim();
+      post.excerpt = plainText.substring(0, 150).trim() + (plainText.length > 150 ? '...' : '');
+    }
 
     if (content) {
       const { score, feedback } = calculateQualityScore(content);
@@ -227,6 +242,113 @@ router.post('/:id/like', protect, async (req, res) => {
     if (error.kind === 'ObjectId') {
       return res.status(404).json({ success: false, message: 'Post not found' });
     }
+    res.status(500).json({ success: false, message: 'Server error' });
+  }
+});
+
+// Simple sentiment analyzer
+const analyzeSentiment = (text) => {
+  const positiveWords = ['good', 'great', 'awesome', 'excellent', 'love', 'amazing', 'fantastic', 'wonderful', 'best', 'helpful', 'thanks', 'thank you'];
+  const negativeWords = ['bad', 'terrible', 'awful', 'worst', 'hate', 'stupid', 'useless', 'boring', 'poor', 'wrong'];
+  
+  const words = text.toLowerCase().match(/\b\w+\b/g) || [];
+  let score = 0;
+  
+  words.forEach(word => {
+    if (positiveWords.includes(word)) score++;
+    if (negativeWords.includes(word)) score--;
+  });
+  
+  if (score > 0) return 'Positive';
+  if (score < 0) return 'Negative';
+  return 'Neutral';
+};
+
+// @route   GET /api/posts/:id/comments
+// @desc    Get comments for a post
+// @access  Public
+router.get('/:id/comments', async (req, res) => {
+  try {
+    const comments = await Comment.find({ post: req.params.id })
+      .populate('user', 'name email')
+      .sort({ createdAt: -1 });
+    
+    res.json({ success: true, count: comments.length, comments });
+  } catch (error) {
+    console.error('Get comments error:', error);
+    res.status(500).json({ success: false, message: 'Server error' });
+  }
+});
+
+// @route   POST /api/posts/:id/comments
+// @desc    Add a comment to a post
+// @access  Private
+router.post(
+  '/:id/comments',
+  protect,
+  [body('text').trim().notEmpty().withMessage('Comment text is required').isLength({ max: 500 }).withMessage('Comment cannot exceed 500 characters')],
+  async (req, res) => {
+    try {
+      const errors = validationResult(req);
+      if (!errors.isEmpty()) {
+        return res.status(400).json({ success: false, message: errors.array()[0].msg });
+      }
+
+      const post = await Post.findById(req.params.id);
+      if (!post) {
+        return res.status(404).json({ success: false, message: 'Post not found' });
+      }
+
+      const { text } = req.body;
+      const sentiment = analyzeSentiment(text);
+
+      const comment = await Comment.create({
+        post: req.params.id,
+        user: req.user._id,
+        text,
+        sentiment
+      });
+
+      await comment.populate('user', 'name email');
+
+      res.status(201).json({ success: true, comment });
+    } catch (error) {
+      console.error('Add comment error:', error);
+      res.status(500).json({ success: false, message: 'Server error' });
+    }
+  }
+);
+
+// @route   DELETE /api/posts/:postId/comments/:commentId
+// @desc    Delete a comment
+// @access  Private
+router.delete('/:postId/comments/:commentId', protect, async (req, res) => {
+  try {
+    const comment = await Comment.findById(req.params.commentId);
+    if (!comment) {
+      return res.status(404).json({ success: false, message: 'Comment not found' });
+    }
+
+    const post = await Post.findById(req.params.postId);
+    
+    // Make sure comment belongs to post
+    if (comment.post.toString() !== req.params.postId) {
+      return res.status(400).json({ success: false, message: 'Comment does not belong to this post' });
+    }
+
+    // Check ownership: comment author or post author can delete
+    const isCommentOwner = comment.user.toString() === req.user._id.toString();
+    const isPostOwner = post && post.author.toString() === req.user._id.toString();
+
+    if (!isCommentOwner && !isPostOwner) {
+      return res.status(403).json({ success: false, message: 'Not authorized to delete this comment' });
+    }
+
+    await comment.deleteOne();
+
+    res.json({ success: true, message: 'Comment removed' });
+  } catch (error) {
+    console.error('Delete comment error:', error);
     res.status(500).json({ success: false, message: 'Server error' });
   }
 });

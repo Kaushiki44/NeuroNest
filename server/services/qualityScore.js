@@ -1,23 +1,26 @@
 const calculateQualityScore = (content) => {
   // Text preprocessing
   const cleanContent = content
-    .replace(/<[^>]*>/g, ' ')
-    .replace(/&nbsp;/gi, ' ')
-    .replace(/\s+/g, ' ')
+    .replace(/<[^>]*>/g, ' ') // Remove HTML tags
+    .replace(/&nbsp;/gi, ' ') // Replace non-breaking spaces
+    .replace(/&#160;/gi, ' ') // Replace HTML entity for nbsp
+    .replace(/\s+/g, ' ') // Normalize whitespace
     .trim()
     .toLowerCase();
   
-  const words = cleanContent.split(' ').filter(w => w.length > 0);
+  const words = cleanContent.split(' ').filter(w => w !== '');
   const wordCount = words.length;
+
+  console.log(`[QualityScore] Processing content - Word count: ${wordCount}`);
 
   let score = 50;
   const feedback = [];
 
   // Word count
-  if (wordCount < 200) {
+  if (wordCount < 150) {
     score -= 20;
     feedback.push("Your post is quite short. Consider expanding it for more detail (-20 pts).");
-  } else if (wordCount >= 200 && wordCount <= 500) {
+  } else if (wordCount >= 150 && wordCount <= 400) {
     score += 10;
     feedback.push("Good word count. Your post is a decent length (+10 pts).");
   } else {
@@ -26,7 +29,13 @@ const calculateQualityScore = (content) => {
   }
 
   // Headings
-  if (/<h[123][^>]*>/.test(content)) {
+  const hasHeadings =
+    /<h[1-6][^>]*>/i.test(content) ||
+    /<p[^>]*>\s*<strong>.*?<\/strong>\s*<\/p>/i.test(content) ||
+    /ql-size-(large|huge)/i.test(content) ||
+    /^#{1,6}\s*/m.test(content); // Support markdown-style headings
+
+  if (hasHeadings) {
     score += 15;
     feedback.push("Great use of headings to structure your content (+15 pts).");
   } else {
@@ -35,11 +44,11 @@ const calculateQualityScore = (content) => {
   }
 
   // Paragraph length
-  const paragraphs = content.split('</p>');
+  const paragraphs = content.split(/<\/p>|\n\n/i);
   let longParagraph = false;
   for (const p of paragraphs) {
-    const pText = p.replace(/<[^>]*>/g, ' ').trim();
-    const pWords = pText.split(/\s+/).filter(w => w.length > 0);
+    const pText = p.replace(/<[^>]*>/g, " ").trim();
+    const pWords = pText.split(/\s+/).filter(w => w !== '');
     if (pWords.length > 150) {
       longParagraph = true;
       break;

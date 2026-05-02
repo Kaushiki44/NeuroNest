@@ -12,6 +12,10 @@ const postSchema = new mongoose.Schema(
       type: String,
       required: [true, 'Content is required'],
     },
+    thumbnail: {
+      type: String,
+      trim: true,
+    },
     excerpt: {
       type: String,
       maxlength: [300, 'Excerpt cannot exceed 300 characters'],
@@ -60,10 +64,17 @@ const postSchema = new mongoose.Schema(
 
 // Auto-generate excerpt from content before saving
 postSchema.pre('save', function (next) {
-  if (this.isModified('content') && !this.excerpt) {
-    // Strip HTML tags for excerpt
-    const plainText = this.content.replace(/<[^>]*>/g, '');
-    this.excerpt = plainText.substring(0, 150).trim() + (plainText.length > 150 ? '...' : '');
+  if (this.isModified('content')) {
+    // Only auto-generate if the user didn't explicitly modify the excerpt in this save
+    if (!this.isModified('excerpt') || !this.excerpt || this.excerpt.includes('&nbsp;')) {
+      // Strip HTML tags and entities for excerpt
+      const plainText = this.content
+        .replace(/<[^>]*>/g, ' ')
+        .replace(/&nbsp;/gi, ' ')
+        .replace(/\s+/g, ' ')
+        .trim();
+      this.excerpt = plainText.substring(0, 150).trim() + (plainText.length > 150 ? '...' : '');
+    }
   }
   next();
 });
