@@ -2,6 +2,7 @@ const express = require('express');
 const { body, validationResult } = require('express-validator');
 const Post = require('../models/Post');
 const { protect } = require('../middleware/auth');
+const { calculateQualityScore } = require('../services/qualityScore');
 
 const router = express.Router();
 
@@ -92,6 +93,8 @@ router.post(
 
       const { title, content, tags, status, excerpt } = req.body;
 
+      const { score: qualityScore, feedback: qualityFeedback } = calculateQualityScore(content);
+
       const post = await Post.create({
         title,
         content,
@@ -99,6 +102,8 @@ router.post(
         tags: tags || [],
         status: status || 'draft',
         author: req.user._id,
+        qualityScore,
+        qualityFeedback,
       });
 
       await post.populate('author', 'name email');
@@ -137,6 +142,12 @@ router.put('/:id', protect, async (req, res) => {
     post.tags = tags !== undefined ? tags : post.tags;
     post.status = status || post.status;
     if (excerpt !== undefined) post.excerpt = excerpt;
+
+    if (content) {
+      const { score, feedback } = calculateQualityScore(content);
+      post.qualityScore = score;
+      post.qualityFeedback = feedback;
+    }
 
     await post.save();
     await post.populate('author', 'name email');

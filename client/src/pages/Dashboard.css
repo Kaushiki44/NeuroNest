@@ -60,6 +60,10 @@
   background: rgba(236, 72, 153, 0.12);
   color: var(--accent-tertiary);
 }
+.stat-icon-quality {
+  background: rgba(167, 139, 250, 0.12);
+  color: var(--text-accent);
+}
 .stat-info {
   display: flex;
   flex-direction: column;

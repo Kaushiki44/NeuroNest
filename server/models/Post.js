@@ -43,6 +43,15 @@ const postSchema = new mongoose.Schema(
         ref: 'User',
       },
     ],
+    qualityScore: {
+      type: Number,
+      default: 0,
+    },
+    qualityFeedback: [
+      {
+        type: String,
+      },
+    ],
   },
   {
     timestamps: true,

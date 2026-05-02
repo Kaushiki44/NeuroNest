@@ -3,7 +3,7 @@ import { Link } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
 import api from '../api/axios';
 import PostCard from '../components/PostCard';
-import { HiOutlinePlusCircle, HiOutlineEye, HiOutlineHeart, HiOutlineDocumentText } from 'react-icons/hi';
+import { HiOutlinePlusCircle, HiOutlineEye, HiOutlineHeart, HiOutlineDocumentText, HiOutlineSparkles } from 'react-icons/hi';
 import toast from 'react-hot-toast';
 import './Dashboard.css';
 
@@ -42,6 +42,9 @@ const Dashboard = () => {
   const totalViews = posts.reduce((sum, p) => sum + (p.views || 0), 0);
   const totalLikes = posts.reduce((sum, p) => sum + (p.likes?.length || 0), 0);
   const publishedCount = posts.filter((p) => p.status === 'published').length;
+  const avgQuality = posts.length > 0 
+    ? Math.round(posts.reduce((sum, p) => sum + (p.qualityScore || 0), 0) / posts.length) 
+    : 0;
 
   const filteredPosts = filter === 'all' ? posts : posts.filter((p) => p.status === filter);
 
@@ -86,6 +89,13 @@ const Dashboard = () => {
           <div className="stat-info">
             <span className="stat-value">{totalLikes}</span>
             <span className="stat-label">Total Likes</span>
+          </div>
+        </div>
+        <div className="stat-card card">
+          <div className="stat-icon stat-icon-quality"><HiOutlineSparkles /></div>
+          <div className="stat-info">
+            <span className="stat-value">{avgQuality}</span>
+            <span className="stat-label">Avg Quality</span>
           </div>
         </div>
       </div>

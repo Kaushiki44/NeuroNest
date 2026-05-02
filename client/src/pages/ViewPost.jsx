@@ -119,6 +119,17 @@ const ViewPost = () => {
           dangerouslySetInnerHTML={{ __html: post.content }}
         />
 
+        {isOwner && post.qualityScore !== undefined && (
+          <div className="quality-feedback-section">
+            <h3>Quality Insights: {post.qualityScore}/100</h3>
+            <ul>
+              {post.qualityFeedback?.map((fb, idx) => (
+                <li key={idx}>{fb}</li>
+              ))}
+            </ul>
+          </div>
+        )}
+
         <footer className="view-post-footer">
           <div className="view-post-stats">
             <span className="view-post-stat">

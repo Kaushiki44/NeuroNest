@@ -63,6 +63,11 @@ const PostCard = ({ post, showActions = false, onDelete }) => {
               <HiOutlineHeart />
               {post.likes?.length || 0} likes
             </span>
+            {post.qualityScore !== undefined && (
+              <span className={`post-stat quality-badge ${post.qualityScore >= 80 ? 'quality-good' : post.qualityScore >= 50 ? 'quality-ok' : 'quality-bad'}`}>
+                {post.qualityScore} Score
+              </span>
+            )}
           </div>
 
           {showActions && (

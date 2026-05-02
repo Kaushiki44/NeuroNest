@@ -7,6 +7,7 @@ import Landing from './pages/Landing';
 import Login from './pages/Login';
 import Register from './pages/Register';
 import Dashboard from './pages/Dashboard';
+import Explore from './pages/Explore';
 import CreatePost from './pages/CreatePost';
 import EditPost from './pages/EditPost';
 import ViewPost from './pages/ViewPost';
@@ -19,6 +20,7 @@ function App() {
         <main>
           <Routes>
             <Route path="/" element={<Landing />} />
+            <Route path="/explore" element={<Explore />} />
             <Route path="/login" element={<Login />} />
             <Route path="/register" element={<Register />} />
             <Route path="/posts/:id" element={<ViewPost />} />

@@ -21,6 +21,11 @@ const Navbar = () => {
         </Link>
 
         <div className="navbar-links">
+          <Link to="/explore" className="nav-link" id="nav-explore">
+            <span style={{ fontSize: '1.15rem' }}>🌍</span>
+            <span>Explore</span>
+          </Link>
+
           {isAuthenticated ? (
             <>
               <Link to="/dashboard" className="nav-link" id="nav-dashboard">

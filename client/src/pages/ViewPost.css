@@ -125,6 +125,28 @@
 .view-post-content ol li {
   list-style: decimal;
 }
+.quality-feedback-section {
+  margin-top: 40px;
+  padding: 24px;
+  background: rgba(167, 139, 250, 0.05);
+  border: 1px solid rgba(167, 139, 250, 0.2);
+  border-radius: var(--radius-md);
+}
+.quality-feedback-section h3 {
+  font-family: var(--font-heading);
+  color: var(--text-accent);
+  margin-bottom: 16px;
+  font-size: 1.25rem;
+  font-weight: 700;
+}
+.quality-feedback-section ul {
+  padding-left: 20px;
+  color: var(--text-secondary);
+}
+.quality-feedback-section li {
+  margin-bottom: 8px;
+  list-style: disc;
+}
 .view-post-footer {
   margin-top: 40px;
   padding-top: 24px;
