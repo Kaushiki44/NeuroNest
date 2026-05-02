@@ -1,0 +1,17 @@
+.post-page {
+  padding-top: 40px;
+  padding-bottom: 60px;
+}
+.post-page-header {
+  margin-bottom: 36px;
+}
+.post-page-title {
+  font-family: var(--font-heading);
+  font-size: 2rem;
+  font-weight: 800;
+  margin-bottom: 4px;
+}
+.post-page-subtitle {
+  color: var(--text-secondary);
+  font-size: 1rem;
+}

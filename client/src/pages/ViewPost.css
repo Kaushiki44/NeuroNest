@@ -1,0 +1,176 @@
+.view-post {
+  padding-top: 32px;
+  padding-bottom: 80px;
+}
+.back-link {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  color: var(--text-secondary);
+  font-size: 0.9rem;
+  font-weight: 500;
+  margin-bottom: 28px;
+  transition: color var(--transition-base);
+}
+.back-link:hover {
+  color: var(--text-primary);
+}
+.view-post-article {
+  background: var(--gradient-card);
+  border: 1px solid var(--border-color);
+  border-radius: var(--radius-xl);
+  padding: 48px;
+  backdrop-filter: blur(12px);
+}
+.view-post-header {
+  margin-bottom: 36px;
+  padding-bottom: 32px;
+  border-bottom: 1px solid var(--border-color);
+}
+.view-post-meta {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 24px;
+}
+.view-post-author-row {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+.view-post-avatar {
+  width: 44px;
+  height: 44px;
+  border-radius: 50%;
+  background: var(--gradient-primary);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-weight: 700;
+  font-size: 1rem;
+  color: white;
+  flex-shrink: 0;
+}
+.view-post-author {
+  display: block;
+  font-weight: 600;
+  font-size: 0.95rem;
+}
+.view-post-date {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  font-size: 0.82rem;
+  color: var(--text-muted);
+}
+.view-post-title {
+  font-family: var(--font-heading);
+  font-size: clamp(1.6rem, 4vw, 2.4rem);
+  font-weight: 800;
+  line-height: 1.2;
+  margin-bottom: 16px;
+}
+.view-post-tags {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+}
+.view-post-content {
+  font-size: 1.05rem;
+  line-height: 1.85;
+  color: var(--text-secondary);
+}
+.view-post-content h1,
+.view-post-content h2,
+.view-post-content h3 {
+  color: var(--text-primary);
+  font-family: var(--font-heading);
+  margin-top: 2em;
+  margin-bottom: 0.6em;
+}
+.view-post-content p {
+  margin-bottom: 1.2em;
+}
+.view-post-content a {
+  color: var(--accent-primary);
+  text-decoration: underline;
+}
+.view-post-content blockquote {
+  border-left: 3px solid var(--accent-primary);
+  padding-left: 16px;
+  margin: 1.5em 0;
+  color: var(--text-muted);
+  font-style: italic;
+}
+.view-post-content pre {
+  background: var(--bg-primary);
+  padding: 16px;
+  border-radius: var(--radius-md);
+  overflow-x: auto;
+  margin: 1.5em 0;
+}
+.view-post-content code {
+  font-family: 'Fira Code', monospace;
+  font-size: 0.9em;
+}
+.view-post-content ul,
+.view-post-content ol {
+  padding-left: 24px;
+  margin-bottom: 1.2em;
+}
+.view-post-content li {
+  margin-bottom: 0.4em;
+  list-style: disc;
+}
+.view-post-content ol li {
+  list-style: decimal;
+}
+.view-post-footer {
+  margin-top: 40px;
+  padding-top: 24px;
+  border-top: 1px solid var(--border-color);
+}
+.view-post-stats {
+  display: flex;
+  align-items: center;
+  gap: 24px;
+}
+.view-post-stat {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  font-size: 0.92rem;
+  color: var(--text-muted);
+}
+.like-btn {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  padding: 10px 20px;
+  border-radius: var(--radius-full);
+  font-size: 0.92rem;
+  font-weight: 600;
+  color: var(--text-secondary);
+  background: rgba(255, 255, 255, 0.03);
+  border: 1px solid var(--border-color);
+  transition: all var(--transition-base);
+  cursor: pointer;
+}
+.like-btn:hover {
+  border-color: rgba(236, 72, 153, 0.4);
+  background: rgba(236, 72, 153, 0.08);
+  color: var(--accent-tertiary);
+}
+.like-btn-active {
+  color: var(--accent-tertiary);
+  border-color: rgba(236, 72, 153, 0.3);
+  background: rgba(236, 72, 153, 0.1);
+}
+.like-btn svg {
+  font-size: 1.2rem;
+}
+@media (max-width: 768px) {
+  .view-post-article {
+    padding: 28px 20px;
+  }
+}

@@ -1,0 +1,132 @@
+.navbar {
+  position: sticky;
+  top: 0;
+  z-index: 100;
+  background: rgba(6, 8, 15, 0.8);
+  backdrop-filter: blur(20px);
+  border-bottom: 1px solid var(--border-color);
+}
+
+.navbar-inner {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  height: 68px;
+}
+
+.navbar-brand {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  transition: opacity var(--transition-base);
+}
+.navbar-brand:hover {
+  opacity: 0.85;
+}
+
+.navbar-logo {
+  font-size: 1.6rem;
+  background: var(--gradient-primary);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-clip: text;
+  font-weight: 800;
+  line-height: 1;
+}
+
+.navbar-title {
+  font-family: var(--font-heading);
+  font-size: 1.3rem;
+  font-weight: 700;
+  background: var(--gradient-primary);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-clip: text;
+}
+
+.navbar-links {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+
+.nav-link {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  padding: 8px 14px;
+  border-radius: var(--radius-sm);
+  color: var(--text-secondary);
+  font-size: 0.9rem;
+  font-weight: 500;
+  transition: all var(--transition-base);
+}
+.nav-link:hover {
+  color: var(--text-primary);
+  background: rgba(255, 255, 255, 0.05);
+}
+.nav-link svg {
+  font-size: 1.15rem;
+}
+
+.nav-link-accent {
+  color: var(--accent-primary);
+}
+.nav-link-accent:hover {
+  color: var(--accent-secondary);
+  background: rgba(99, 102, 241, 0.08);
+}
+
+.nav-link-logout {
+  color: var(--text-muted);
+}
+.nav-link-logout:hover {
+  color: var(--accent-danger);
+  background: rgba(239, 68, 68, 0.08);
+}
+
+.nav-divider {
+  width: 1px;
+  height: 28px;
+  background: var(--border-color);
+  margin: 0 8px;
+}
+
+.nav-user {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 0 8px;
+}
+
+.nav-avatar {
+  width: 32px;
+  height: 32px;
+  border-radius: 50%;
+  background: var(--gradient-primary);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-weight: 700;
+  font-size: 0.85rem;
+  color: white;
+}
+
+.nav-user-name {
+  font-size: 0.88rem;
+  font-weight: 500;
+  color: var(--text-primary);
+}
+
+@media (max-width: 768px) {
+  .nav-user-name,
+  .nav-link span {
+    display: none;
+  }
+  .nav-divider {
+    display: none;
+  }
+  .navbar-links {
+    gap: 2px;
+  }
+}
