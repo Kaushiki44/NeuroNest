@@ -47,6 +47,10 @@ const postSchema = new mongoose.Schema(
         ref: 'User',
       },
     ],
+    commentCount: {
+      type: Number,
+      default: 0,
+    },
     qualityScore: {
       type: Number,
       default: 0,

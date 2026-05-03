@@ -7,8 +7,8 @@ const { protect } = require('../middleware/auth');
 const router = express.Router();
 
 // Helper: generate JWT
-const generateToken = (id) => {
-  return jwt.sign({ id }, process.env.JWT_SECRET, {
+const generateToken = (user) => {
+  return jwt.sign({ id: user._id, role: user.role }, process.env.JWT_SECRET, {
     expiresIn: process.env.JWT_EXPIRE,
   });
 };
@@ -50,7 +50,7 @@ router.post(
       const user = await User.create({ name, email, password });
 
       // Generate token
-      const token = generateToken(user._id);
+      const token = generateToken(user);
 
       res.status(201).json({
         success: true,
@@ -59,6 +59,7 @@ router.post(
           id: user._id,
           name: user.name,
           email: user.email,
+          role: user.role,
         },
       });
     } catch (error) {
@@ -111,7 +112,7 @@ router.post(
       }
 
       // Generate token
-      const token = generateToken(user._id);
+      const token = generateToken(user);
 
       res.json({
         success: true,
@@ -120,6 +121,7 @@ router.post(
           id: user._id,
           name: user.name,
           email: user.email,
+          role: user.role,
         },
       });
     } catch (error) {
@@ -142,6 +144,7 @@ router.get('/me', protect, async (req, res) => {
       id: req.user._id,
       name: req.user.name,
       email: req.user.email,
+      role: req.user.role,
     },
   });
 });

@@ -1,8 +1,14 @@
 import { Link } from 'react-router-dom';
+import { useAuth } from '../context/AuthContext';
 import { HiOutlineEye, HiOutlineHeart, HiOutlineClock, HiOutlinePencil, HiOutlineTrash } from 'react-icons/hi';
 import './PostCard.css';
 
 const PostCard = ({ post, showActions = false, onDelete }) => {
+  const { user } = useAuth();
+  
+  const isAdmin = user?.role === 'admin';
+  const isOwner = user?.id === (post.author?._id || post.author);
+  const displayActions = showActions || isAdmin || isOwner;
   const formatDate = (dateStr) => {
     const date = new Date(dateStr);
     return date.toLocaleDateString('en-US', {
@@ -39,7 +45,18 @@ const PostCard = ({ post, showActions = false, onDelete }) => {
 
       <div className="post-card-content">
         <Link to={`/posts/${post._id}`} className="post-card-title-link">
-          <h3 className="post-card-title">{post.title}</h3>
+          <h3 className="post-card-title">
+            {post.status === 'draft' && (
+              <span style={{ 
+                marginRight: '8px', fontSize: '0.7rem', verticalAlign: 'middle', 
+                padding: '2px 6px', borderRadius: '4px', backgroundColor: '#e2e8f0', 
+                color: '#475569', fontWeight: 'bold' 
+              }}>
+                DRAFT
+              </span>
+            )}
+            {post.title}
+          </h3>
         </Link>
 
         <p className="post-card-excerpt">{excerpt}</p>
@@ -70,12 +87,27 @@ const PostCard = ({ post, showActions = false, onDelete }) => {
             </span>
           </div>
 
-          {showActions && (
+          {displayActions && (
             <div className="post-card-actions">
               <Link to={`/posts/edit/${post._id}`} className="action-icon" title="Edit Post">
                 <HiOutlinePencil />
               </Link>
-              <button onClick={() => onDelete && onDelete(post._id)} className="action-icon action-delete" title="Delete Post">
+              <button 
+                onClick={(e) => {
+                  e.preventDefault();
+                  if (onDelete) onDelete(post._id);
+                  else if (window.confirm('Delete this post?')) {
+                     // Fallback if onDelete not provided by parent
+                     import('../api/axios').then(({ default: api }) => {
+                       api.delete(`/posts/${post._id}`)
+                         .then(() => window.location.reload())
+                         .catch(err => console.error(err));
+                     });
+                  }
+                }} 
+                className="action-icon action-delete" 
+                title="Delete Post"
+              >
                 <HiOutlineTrash />
               </button>
             </div>

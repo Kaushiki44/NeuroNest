@@ -1,8 +1,7 @@
 const express = require('express');
 const { body, validationResult } = require('express-validator');
 const Post = require('../models/Post');
-const Comment = require('../models/Comment');
-const { protect } = require('../middleware/auth');
+const { protect, optionalAuth } = require('../middleware/auth');
 const { calculateQualityScore } = require('../services/qualityScore');
 
 const router = express.Router();
@@ -10,9 +9,15 @@ const router = express.Router();
 // @route   GET /api/posts
 // @desc    Get all published posts
 // @access  Public
-router.get('/', async (req, res) => {
+router.get('/', optionalAuth, async (req, res) => {
   try {
-    const posts = await Post.find({ status: 'published' })
+    let query = { status: 'published' };
+    
+    if (req.user && req.user.role === 'admin') {
+      query = {}; // Admin sees all posts including drafts
+    }
+
+    const posts = await Post.find(query)
       .populate('author', 'name email')
       .sort({ createdAt: -1 });
 
@@ -50,17 +55,31 @@ router.get('/my', protect, async (req, res) => {
 // @route   GET /api/posts/:id
 // @desc    Get single post by ID (increments views)
 // @access  Public
-router.get('/:id', async (req, res) => {
+router.get('/:id', optionalAuth, async (req, res) => {
   try {
-    const post = await Post.findByIdAndUpdate(
-      req.params.id,
-      { $inc: { views: 1 } },
-      { new: true }
-    ).populate('author', 'name email');
+    // First just find the post without updating views to check auth
+    let post = await Post.findById(req.params.id).populate('author', 'name email');
 
     if (!post) {
       return res.status(404).json({ success: false, message: 'Post not found' });
     }
+
+    // Check draft access
+    if (post.status === 'draft') {
+      const isOwner = req.user && req.user._id.toString() === post.author._id.toString();
+      const isAdmin = req.user && req.user.role === 'admin';
+      
+      if (!isOwner && !isAdmin) {
+        return res.status(403).json({ success: false, message: 'Not authorized to view this draft' });
+      }
+    }
+
+    // Now increment views and return
+    post = await Post.findByIdAndUpdate(
+      req.params.id,
+      { $inc: { views: 1 } },
+      { new: true }
+    ).populate('author', 'name email');
 
     res.json({ success: true, post });
   } catch (error) {
@@ -208,6 +227,48 @@ router.delete('/:id', protect, async (req, res) => {
   }
 });
 
+// @route   PATCH /api/posts/:id/status
+// @desc    Update post status (publish/draft)
+// @access  Private
+router.patch('/:id/status', protect, async (req, res) => {
+  try {
+    const { status } = req.body;
+
+    if (!['published', 'draft'].includes(status)) {
+      return res.status(400).json({ success: false, message: 'Invalid status' });
+    }
+
+    const post = await Post.findById(req.params.id);
+
+    if (!post) {
+      return res.status(404).json({ success: false, message: 'Post not found' });
+    }
+
+    // Check authorization: must be admin OR the author
+    const isOwner = post.author.toString() === req.user._id.toString();
+    const isAdmin = req.user.role === 'admin';
+
+    if (!isOwner && !isAdmin) {
+      return res.status(403).json({
+        success: false,
+        message: 'Not authorized to change post status',
+      });
+    }
+
+    post.status = status;
+    await post.save();
+    await post.populate('author', 'name email');
+
+    res.json({ success: true, post });
+  } catch (error) {
+    console.error('Update status error:', error);
+    if (error.kind === 'ObjectId') {
+      return res.status(404).json({ success: false, message: 'Post not found' });
+    }
+    res.status(500).json({ success: false, message: 'Server error' });
+  }
+});
+
 // @route   POST /api/posts/:id/like
 // @desc    Toggle like on a post
 // @access  Private
@@ -242,113 +303,6 @@ router.post('/:id/like', protect, async (req, res) => {
     if (error.kind === 'ObjectId') {
       return res.status(404).json({ success: false, message: 'Post not found' });
     }
-    res.status(500).json({ success: false, message: 'Server error' });
-  }
-});
-
-// Simple sentiment analyzer
-const analyzeSentiment = (text) => {
-  const positiveWords = ['good', 'great', 'awesome', 'excellent', 'love', 'amazing', 'fantastic', 'wonderful', 'best', 'helpful', 'thanks', 'thank you'];
-  const negativeWords = ['bad', 'terrible', 'awful', 'worst', 'hate', 'stupid', 'useless', 'boring', 'poor', 'wrong'];
-  
-  const words = text.toLowerCase().match(/\b\w+\b/g) || [];
-  let score = 0;
-  
-  words.forEach(word => {
-    if (positiveWords.includes(word)) score++;
-    if (negativeWords.includes(word)) score--;
-  });
-  
-  if (score > 0) return 'Positive';
-  if (score < 0) return 'Negative';
-  return 'Neutral';
-};
-
-// @route   GET /api/posts/:id/comments
-// @desc    Get comments for a post
-// @access  Public
-router.get('/:id/comments', async (req, res) => {
-  try {
-    const comments = await Comment.find({ post: req.params.id })
-      .populate('user', 'name email')
-      .sort({ createdAt: -1 });
-    
-    res.json({ success: true, count: comments.length, comments });
-  } catch (error) {
-    console.error('Get comments error:', error);
-    res.status(500).json({ success: false, message: 'Server error' });
-  }
-});
-
-// @route   POST /api/posts/:id/comments
-// @desc    Add a comment to a post
-// @access  Private
-router.post(
-  '/:id/comments',
-  protect,
-  [body('text').trim().notEmpty().withMessage('Comment text is required').isLength({ max: 500 }).withMessage('Comment cannot exceed 500 characters')],
-  async (req, res) => {
-    try {
-      const errors = validationResult(req);
-      if (!errors.isEmpty()) {
-        return res.status(400).json({ success: false, message: errors.array()[0].msg });
-      }
-
-      const post = await Post.findById(req.params.id);
-      if (!post) {
-        return res.status(404).json({ success: false, message: 'Post not found' });
-      }
-
-      const { text } = req.body;
-      const sentiment = analyzeSentiment(text);
-
-      const comment = await Comment.create({
-        post: req.params.id,
-        user: req.user._id,
-        text,
-        sentiment
-      });
-
-      await comment.populate('user', 'name email');
-
-      res.status(201).json({ success: true, comment });
-    } catch (error) {
-      console.error('Add comment error:', error);
-      res.status(500).json({ success: false, message: 'Server error' });
-    }
-  }
-);
-
-// @route   DELETE /api/posts/:postId/comments/:commentId
-// @desc    Delete a comment
-// @access  Private
-router.delete('/:postId/comments/:commentId', protect, async (req, res) => {
-  try {
-    const comment = await Comment.findById(req.params.commentId);
-    if (!comment) {
-      return res.status(404).json({ success: false, message: 'Comment not found' });
-    }
-
-    const post = await Post.findById(req.params.postId);
-    
-    // Make sure comment belongs to post
-    if (comment.post.toString() !== req.params.postId) {
-      return res.status(400).json({ success: false, message: 'Comment does not belong to this post' });
-    }
-
-    // Check ownership: comment author or post author can delete
-    const isCommentOwner = comment.user.toString() === req.user._id.toString();
-    const isPostOwner = post && post.author.toString() === req.user._id.toString();
-
-    if (!isCommentOwner && !isPostOwner) {
-      return res.status(403).json({ success: false, message: 'Not authorized to delete this comment' });
-    }
-
-    await comment.deleteOne();
-
-    res.json({ success: true, message: 'Comment removed' });
-  } catch (error) {
-    console.error('Delete comment error:', error);
     res.status(500).json({ success: false, message: 'Server error' });
   }
 });

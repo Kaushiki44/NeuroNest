@@ -68,7 +68,16 @@ const Sidebar = ({ isCollapsed, toggleSidebar }) => {
             <div className="sidebar-user-details">
               <span className="sidebar-user-name">{user?.name}</span>
               <span className="sidebar-user-email">{user?.email}</span>
-              <span className="sidebar-user-role">ADMIN</span>
+              {user?.role === 'admin' && (
+                <>
+                  <span className="sidebar-user-role" style={{ backgroundColor: 'var(--accent-primary)', color: '#fff', padding: '2px 6px', borderRadius: '4px', fontSize: '0.7rem', fontWeight: 'bold', marginTop: '4px', display: 'inline-block' }}>
+                    ADMIN PANEL
+                  </span>
+                  <span style={{ fontSize: '0.65rem', color: 'var(--text-muted)', marginTop: '2px', display: 'block' }}>
+                    You have full platform control
+                  </span>
+                </>
+              )}
             </div>
           )}
         </div>

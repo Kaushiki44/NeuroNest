@@ -2,7 +2,7 @@ import { useState, useEffect } from 'react';
 import { Link } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
 import api from '../api/axios';
-import { HiOutlinePlusCircle, HiOutlinePencil, HiOutlineTrash } from 'react-icons/hi';
+import { HiOutlinePlusCircle, HiOutlinePencil, HiOutlineTrash, HiOutlineEye, HiOutlineEyeOff } from 'react-icons/hi';
 import toast from 'react-hot-toast';
 import './ManageBlogs.css';
 
@@ -34,6 +34,17 @@ const ManageBlogs = () => {
       toast.success('Post deleted');
     } catch (error) {
       toast.error('Failed to delete post');
+    }
+  };
+
+  const handleToggleStatus = async (post) => {
+    const newStatus = post.status === 'published' ? 'draft' : 'published';
+    try {
+      await api.patch(`/posts/${post._id}/status`, { status: newStatus });
+      setPosts(posts.map((p) => p._id === post._id ? { ...p, status: newStatus } : p));
+      toast.success(`Post marked as ${newStatus}`);
+    } catch (error) {
+      toast.error('Failed to change status');
     }
   };
 
@@ -88,6 +99,13 @@ const ManageBlogs = () => {
                   </td>
                   <td className="col-views">{post.views || 0}</td>
                   <td className="col-actions">
+                    <button 
+                      onClick={() => handleToggleStatus(post)} 
+                      className="action-btn status-btn"
+                      title={post.status === 'published' ? 'Unpublish to Draft' : 'Publish Post'}
+                    >
+                      {post.status === 'published' ? <HiOutlineEyeOff /> : <HiOutlineEye />}
+                    </button>
                     <Link to={`/posts/edit/${post._id}`} className="action-btn edit-btn">
                       <HiOutlinePencil />
                     </Link>

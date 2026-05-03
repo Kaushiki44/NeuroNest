@@ -27,7 +27,7 @@ const ViewPost = () => {
       try {
         const [postRes, commentsRes] = await Promise.all([
           api.get(`/posts/${id}`),
-          api.get(`/posts/${id}/comments`)
+          api.get(`/comments/${id}`)
         ]);
 
         setPost(postRes.data.post);
@@ -66,7 +66,7 @@ const ViewPost = () => {
 
     setSubmittingComment(true);
     try {
-      const { data } = await api.post(`/posts/${id}/comments`, { text: newComment });
+      const { data } = await api.post(`/comments`, { postId: id, text: newComment });
       setComments([data.comment, ...comments]);
       setNewComment('');
       toast.success('Comment added!');
@@ -81,7 +81,7 @@ const ViewPost = () => {
     if (!window.confirm('Are you sure you want to delete this comment?')) return;
     
     try {
-      await api.delete(`/posts/${id}/comments/${commentId}`);
+      await api.delete(`/comments/${commentId}`);
       setComments(comments.filter(c => c._id !== commentId));
       toast.success('Comment deleted');
     } catch (error) {
@@ -127,6 +127,8 @@ const ViewPost = () => {
   }
 
   const isOwner = user && post.author && user.id === post.author._id;
+  const isAdmin = user?.role === 'admin';
+  const canEditOrDeletePost = isOwner || isAdmin;
 
   return (
     <div className="view-post container-narrow" id="view-post-page">
@@ -148,7 +150,7 @@ const ViewPost = () => {
                 </span>
               </div>
             </div>
-            {isOwner && (
+            {canEditOrDeletePost && (
               <Link to={`/posts/edit/${post._id}`} className="btn btn-secondary btn-sm">
                 <HiOutlinePencil /> Edit
               </Link>
@@ -241,7 +243,7 @@ const ViewPost = () => {
           ) : (
             comments.map((comment) => {
               const isCommentOwner = user && comment.user && user.id === comment.user._id;
-              const canDelete = isCommentOwner || isOwner;
+              const canDelete = isCommentOwner || isOwner || isAdmin;
 
               return (
                 <div key={comment._id} className="comment-card">
