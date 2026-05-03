@@ -1,10 +1,14 @@
 import { useState, useEffect } from 'react';
 import { Link } from 'react-router-dom';
+import {
+  BarChart, Bar, XAxis, YAxis, Tooltip, ResponsiveContainer, Cell,
+  PieChart, Pie, Legend
+} from 'recharts';
 import api from '../api/axios';
 import { useAuth } from '../context/AuthContext';
 import { 
   HiOutlineDocumentText, HiOutlineChatAlt2, HiOutlineEmojiHappy, 
-  HiOutlineEmojiSad, HiOutlineMinus, HiOutlineLightBulb
+  HiOutlineEmojiSad, HiOutlineMinus, HiOutlineLightBulb, HiOutlineEye, HiOutlineCheckCircle
 } from 'react-icons/hi';
 import './Dashboard.css';
 
@@ -33,7 +37,7 @@ const Dashboard = () => {
   const isAdmin = user?.role === 'admin';
   const title = isAdmin ? 'Platform Analytics' : 'Your Content Analytics';
 
-  const { totalBlogs, totalComments, sentimentStats, topBlogs, recentBlogs } = data;
+  const { totalBlogs, publishedBlogs, draftBlogs, totalViews, totalComments, sentimentStats, topBlogs, recentBlogs } = data;
 
   return (
     <div className="dashboard-page animate-fade-in">
@@ -46,18 +50,45 @@ const Dashboard = () => {
           <div className="stat-content">
             <span className="stat-label">TOTAL BLOGS</span>
             <span className="stat-value">{totalBlogs}</span>
+            <span className="stat-subtext" style={{ fontSize: '0.75rem', color: 'var(--text-muted)', marginTop: '4px', display: 'block' }}>
+              {publishedBlogs} published, {draftBlogs} draft
+            </span>
           </div>
           <div className="stat-icon-wrapper"><HiOutlineDocumentText /></div>
         </div>
 
         <div className="stat-card">
           <div className="stat-content">
+            <span className="stat-label">PUBLISHED BLOGS</span>
+            <span className="stat-value">{publishedBlogs}</span>
+            <span className="stat-subtext" style={{ fontSize: '0.75rem', color: 'var(--text-muted)', marginTop: '4px', display: 'block' }}>
+              Live to readers
+            </span>
+          </div>
+          <div className="stat-icon-wrapper"><HiOutlineCheckCircle /></div>
+        </div>
+
+        <div className="stat-card">
+          <div className="stat-content">
+            <span className="stat-label">TOTAL VIEWS</span>
+            <span className="stat-value">{totalViews}</span>
+            <span className="stat-subtext" style={{ fontSize: '0.75rem', color: 'var(--text-muted)', marginTop: '4px', display: 'block' }}>
+              Sum of all post views
+            </span>
+          </div>
+          <div className="stat-icon-wrapper"><HiOutlineEye /></div>
+        </div>
+
+        <div className="stat-card">
+          <div className="stat-content">
             <span className="stat-label">TOTAL COMMENTS</span>
             <span className="stat-value">{totalComments}</span>
+            <span className="stat-subtext" style={{ fontSize: '0.75rem', color: 'var(--text-muted)', marginTop: '4px', display: 'block' }}>
+              Across all posts
+            </span>
           </div>
           <div className="stat-icon-wrapper"><HiOutlineChatAlt2 /></div>
         </div>
-
       </div>
 
       <div className="sentiment-dashboard-section">
@@ -105,6 +136,71 @@ const Dashboard = () => {
           <Link to="/posts/create" className="btn btn-primary" style={{marginTop: 16, display: 'inline-block'}}>Create Post</Link>
         </div>
       ) : (
+        <>
+          <div className="charts-grid" style={{ gridTemplateColumns: 'repeat(auto-fit, minmax(350px, 1fr))', marginBottom: '24px' }}>
+          {/* Charts Section */}
+          <div className="chart-card">
+            <h3 className="chart-title">Most Viewed Posts</h3>
+            {topBlogs.length === 0 ? (
+               <p className="stat-subtext">No views yet to display charts.</p>
+            ) : (
+              <div style={{ width: '100%', height: 300, marginTop: '16px' }}>
+                <ResponsiveContainer>
+                  <BarChart data={topBlogs.map(b => ({
+                    name: b.title.length > 15 ? b.title.substring(0, 15) + '...' : b.title,
+                    views: b.views
+                  }))}>
+                    <XAxis dataKey="name" stroke="#9ca3af" fontSize={12} tickLine={false} axisLine={false} />
+                    <YAxis stroke="#9ca3af" fontSize={12} tickLine={false} axisLine={false} />
+                    <Tooltip cursor={{ fill: 'rgba(255,255,255,0.05)' }} contentStyle={{ backgroundColor: '#1e293b', border: 'none', borderRadius: '8px', color: '#f8fafc' }} />
+                    <Bar dataKey="views" fill="#8b5cf6" radius={[4, 4, 0, 0]} />
+                  </BarChart>
+                </ResponsiveContainer>
+              </div>
+            )}
+          </div>
+
+          <div className="chart-card">
+            <h3 className="chart-title">Sentiment Distribution</h3>
+            {(sentimentStats.positive === 0 && sentimentStats.neutral === 0 && sentimentStats.negative === 0) ? (
+               <p className="stat-subtext">No sentiment data yet.</p>
+            ) : (
+              <div style={{ width: '100%', height: 300, marginTop: '16px' }}>
+                <ResponsiveContainer>
+                  <PieChart>
+                    <Pie
+                      data={[
+                        { name: 'Positive', value: sentimentStats.positive, color: '#10b981' },
+                        { name: 'Neutral', value: sentimentStats.neutral, color: '#64748b' },
+                        { name: 'Negative', value: sentimentStats.negative, color: '#ef4444' }
+                      ].filter(d => d.value > 0)}
+                      cx="50%"
+                      cy="50%"
+                      innerRadius={60}
+                      outerRadius={100}
+                      paddingAngle={5}
+                      dataKey="value"
+                      stroke="none"
+                    >
+                      {
+                        [
+                          { name: 'Positive', value: sentimentStats.positive, color: '#10b981' },
+                          { name: 'Neutral', value: sentimentStats.neutral, color: '#64748b' },
+                          { name: 'Negative', value: sentimentStats.negative, color: '#ef4444' }
+                        ].filter(d => d.value > 0).map((entry, index) => (
+                          <Cell key={`cell-${index}`} fill={entry.color} />
+                        ))
+                      }
+                    </Pie>
+                    <Tooltip contentStyle={{ backgroundColor: '#1e293b', border: 'none', borderRadius: '8px', color: '#f8fafc' }} itemStyle={{ color: '#f8fafc' }} />
+                    <Legend verticalAlign="bottom" height={36} iconType="circle" />
+                  </PieChart>
+                </ResponsiveContainer>
+              </div>
+            )}
+          </div>
+        </div>
+
         <div className="charts-grid" style={{ gridTemplateColumns: 'repeat(auto-fit, minmax(350px, 1fr))' }}>
           <div className="chart-card">
             <h3 className="chart-title">Top Performing Posts</h3>
@@ -142,6 +238,7 @@ const Dashboard = () => {
             </ul>
           </div>
         </div>
+        </>
       )}
 
       {totalBlogs > 0 && totalComments === 0 && (
